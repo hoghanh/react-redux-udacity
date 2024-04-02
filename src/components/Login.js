@@ -1,5 +1,5 @@
 import { connect, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import {
   Button,
@@ -18,6 +18,8 @@ import { setAuthUser } from '../actions/authUser';
 const Login = (props) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
+
+  const location = useLocation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -38,7 +40,19 @@ const Login = (props) => {
     e.preventDefault();
     dispatch(setAuthUser(value));
 
-    navigate('/');
+    const path = location.pathname;
+
+    if (path.startsWith('/question')) {
+      const id = path.split('/').at(2);
+      const question = props.questions[id];
+      if (!question) {
+        navigate('/404');
+      } else {
+        navigate(path);
+      }
+    } else {
+      navigate(path || '/');
+    }
   };
 
   return (
@@ -103,6 +117,7 @@ const Login = (props) => {
 
 const mapStateToProps = (state) => ({
   users: Object.keys(state.users).map((key) => state.users[key]),
+  questions: state.questions,
 });
 
 export default connect(mapStateToProps, { setAuthUser })(Login);

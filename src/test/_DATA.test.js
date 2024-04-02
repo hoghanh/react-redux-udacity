@@ -1,4 +1,9 @@
-import { _getQuestions, _getUsers, _saveQuestion } from '../asset/_DATA';
+import {
+  _getQuestions,
+  _getUsers,
+  _saveQuestion,
+  _saveQuestionAnswer,
+} from '../asset/_DATA';
 
 jest.mock('timers', () => ({
   setTimeout: (fn, delay) => {
@@ -42,6 +47,7 @@ test('_saveQuestion creates and saves a new question', async () => {
   };
 
   const savedQuestion = await _saveQuestion(newQuestion);
+  const questions = await _getQuestions();
 
   expect(savedQuestion).toEqual(
     expect.objectContaining({
@@ -58,10 +64,32 @@ test('_saveQuestion creates and saves a new question', async () => {
       },
     })
   );
+
+  expect(questions[savedQuestion.id]).toEqual(savedQuestion);
 });
 
 test('_saveQuestion throws error for missing data', async () => {
   await expect(_saveQuestion({})).rejects.toEqual(
     'Please provide optionOneText, optionTwoText, and author'
+  );
+});
+
+test('_saveQuestionAnswer updates user answers and question votes', async () => {
+  const authUser = 'tylermcginnis';
+  const qid = '8xf0y6ziyjabvozdd253nd';
+  const answer = 'optionTwo';
+
+  await _saveQuestionAnswer({ authUser, qid, answer });
+
+  const users = await _getUsers();
+  const questions = await _getQuestions();
+
+  expect(users[authUser]?.answers[qid]).toEqual(answer);
+  expect(questions[qid].optionTwo.votes).toContain(authUser);
+});
+
+test('_saveQuestionAnswer throws error for missing data', async () => {
+  await expect(_saveQuestionAnswer({})).rejects.toEqual(
+    'Please provide authUser, qid, and answer'
   );
 });

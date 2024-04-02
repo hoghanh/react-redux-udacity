@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import {
@@ -22,13 +22,24 @@ import { saveAnswer } from '../actions/shared';
 
 const Question = (props) => {
   const { id } = useParams();
-  const [value, setValue] = useState(0);
-
   const question = props.questions[id];
-  const { optionOne, optionTwo } = question;
 
-  const totalVotes = optionOne.votes.length + optionTwo.votes.length;
-  const isOptionOne = optionOne.votes.includes(props.authUser);
+  const [value, setValue] = useState(0);
+  const [optionOne, setOptionOne] = useState();
+  const [optionTwo, setOptionTwo] = useState();
+  const [totalVotes, setTotalVotes] = useState(0);
+  const [isOptionOne, setIsOptionOne] = useState(false);
+
+  useEffect(() => {
+    if (question) {
+      setOptionOne(question.optionOne);
+      setOptionTwo(question.optionTwo);
+      setTotalVotes(
+        question.optionOne.votes.length + question.optionTwo.votes.length
+      );
+      setIsOptionOne(question.optionOne.votes.includes(props.authUser));
+    }
+  });
 
   const questionAnswered = Object.keys(
     props.users[props.authUser]?.answers

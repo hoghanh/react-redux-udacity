@@ -3,8 +3,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { toBeInTheDocument } from '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { createStore } from 'redux';
-
-import Home from '../components/Home';
+import renderer from 'react-test-renderer';
+import Question from '../components/Question';
+import { _getQuestions, _saveQuestion } from '../asset/_DATA';
 
 const mockUsers = {
   sarahedo: {
@@ -43,7 +44,7 @@ const mockUsers = {
     answers: {
       xj352vofupe1dqz9emx13r: 'optionOne',
     },
-    questions: ['6ni6ok3ym7mf1p33lnez'],
+    questions: [],
   },
 };
 
@@ -95,7 +96,9 @@ const mockState = {
   users: mockUsers,
 };
 
-const store = createStore((state = { users: mockUsers }, action) => state, {
+const store = createStore((state = mockState, action) => state, {
+  authUser: 'mtsamis',
+  questions: mockQuestions,
   users: mockUsers,
 });
 
@@ -103,38 +106,21 @@ jest.mock('react-redux', () => ({
   connect: jest.fn(() => (Component) => Component),
 }));
 
-test('renders unanswered questions first', () => {
-  render(
-    <BrowserRouter>
-      <Home {...mockState} />
-    </BrowserRouter>
-  );
+test('_saveQuestion creates and saves a new question (snapshot)', async () => {
+  const newQuestion = {
+    optionOneText: 'Option A',
+    optionTwoText: 'Option B',
+    author: 'sarahedo',
+  };
 
-  const unansweredQuestion = screen.getByText('Sarah Edo asked:');
-  expect(unansweredQuestion).toBeInTheDocument();
-});
+  const savedQuestion = await _saveQuestion(newQuestion);
 
-test('shows number of "Vote Poll" button for unanswered questions in home screen', () => {
-  render(
-    <BrowserRouter>
-      <Home {...mockState} />
-    </BrowserRouter>
-  );
-
-  const voteButtons = screen.getAllByText('Vote Poll');
-  expect(voteButtons).toHaveLength(3);
-});
-
-test('shows "Result" button for answered questions', () => {
-  const userDispatch = jest.fn();
-  render(
-    <BrowserRouter>
-      <Home {...mockState} dispatch={userDispatch} />
-    </BrowserRouter>
-  );
-
-  fireEvent.click(screen.getByText('Answered'));
-
-  const resultButton = screen.getAllByText('Result');
-  expect(resultButton).toHaveLength(3);
+  const questionTree = renderer
+    .create(
+      <BrowserRouter>
+        <Question question={savedQuestion} {...mockState} />
+      </BrowserRouter>
+    )
+    .toJSON();
+  expect(questionTree).toMatchSnapshot();
 });

@@ -195,30 +195,28 @@ export function _saveQuestionAnswer({ authUser, qid, answer }) {
       reject('Please provide authUser, qid, and answer');
     }
 
-    setTimeout(() => {
-      users = {
-        ...users,
-        [authUser]: {
-          ...users[authUser],
-          answers: {
-            ...users[authUser].answers,
-            [qid]: answer,
-          },
+    users = {
+      ...users,
+      [authUser]: {
+        ...users[authUser],
+        answers: {
+          ...users[authUser].answers,
+          [qid]: answer,
         },
-      };
+      },
+    };
 
-      questions = {
-        ...questions,
-        [qid]: {
-          ...questions[qid],
-          [answer]: {
-            ...questions[qid][answer],
-            votes: questions[qid][answer].votes.concat([authUser]),
-          },
+    questions = {
+      ...questions,
+      [qid]: {
+        ...questions[qid],
+        [answer]: {
+          ...questions[qid][answer],
+          votes: questions[qid][answer].votes.concat(authUser),
         },
-      };
+      },
+    };
 
-      resolve(true);
-    }, 500);
+    resolve(true);
   });
 }
